@@ -1,0 +1,565 @@
+---
+title: "TRABALHO - ANÁLISE EXPLORATÓRIA DE DADOS"
+author: "Renan Moisés Bonfá"
+output:
+  html_document: default
+  word_document: default
+  pdf_document: default
+sub-title: MBA Executivo em Business Analytics e Big Data
+---
+ 
+
+
+## 1)
+
+Subir arquivo dadosTrabalho.txt
+```{r}
+setwd("~/R Projects/AED/Dataset")
+
+dados_trab <- read.table(file = "dadosTrabalho.txt",
+                         header = FALSE,
+                         col.names = c("ID",paste("x", 1:16, sep = "")))
+```
+
+
+5 variáveis e as seguintes medidas resumos: Q1, Q2, Q3, média, mínimo e máximo.  
+*Q2 = Mediana*
+
+```{r}
+#Summary_x5 - Porcentagem da população da cidade com idade entre 18 e 34 anos em 1990
+summary(dados_trab$x5)
+#Summary_x6 - Porcentagem da população da cidade acima dos 65 anos de idade em 1990
+summary(dados_trab$x6)
+#Summary_x7 - Número de médicos não federais profissionalmente ativos em 1990
+summary(dados_trab$x7)
+#Summary_x8 - Número de leitos nos hospitais em 1990
+summary(dados_trab$x8)
+#Summary_x9 - Número total de crimes em 1990 registrados pela polícia
+summary(dados_trab$x9)
+
+```
+
+## 2)
+
+```{r}
+#BOXPLOTS
+
+#BLOXPLOT_x5 - Porcentagem da população da cidade com idade entre 18 e 34 anos em 1990
+boxplot(dados_trab$x5, main = "BOXPLOT - Coluna x5")
+
+#BLOXPLOT_x6 - Porcentagem da população da cidade acima dos 65 anos de idade em 1990
+boxplot(dados_trab$x6, main = "BOXPLOT - Coluna x6")
+
+#BLOXPLOT_x7 - Número de médicos não federais profissionalmente ativos em 1990
+boxplot(dados_trab$x7, main = "BOXPLOT- Coluna x7")
+
+#BOXPLOT_x8 - Número de leitos nos hospitais em 1990
+boxplot(dados_trab$x8, main = "BOXPLOT - Coluna x8")
+
+#BOXPLOT_x9 - Número total de crimes em 1990 registrados pela polícia
+boxplot(dados_trab$x9, main = "BOXPLOT - Coluna x9")
+
+```
+
+Sim, considerando que o a distribuição normal ocorre quando a mediana está no meio da caixa e os "whiskers" são iguais em ambos os lados da caixa (distribuição simétrica), observa-se que dos boxplots e histogramas gerados, as variáveis que mais se aproximam de uma distribuição normal foram as variáveis x5 e x6, pois tiveram uma distribuição mais simétrica, com menos outliers prejudicando a distribuição dos dados.
+
+## 3)
+
+```{r}
+
+
+#Instalando pacotes de correlação
+# install.packages("corrplot")
+library("corrplot")
+
+#Definindo dados matriz de correção
+MC <- cor(dados_trab[ , 4:16])
+Nomes_colunas <-  c("Area cidade",
+                    "Pop est 1990",
+                    "%Pop cidade 18-24anos em 1990",
+                    "%pop cid >65 anos em 1990",
+                    "N de medicos ativos",
+                    "N de leito hosp",
+                    "Total crimes 1990",
+                    "% Pop que concluiram high school",
+                    "% Bacharéis",
+                    "% Nível de pobreza 1990",
+                    "% Desempregados",
+                    "Renda per capita ($)",
+                    "Renda total ($)")
+
+colnames(MC)  <- Nomes_colunas
+row.names(MC) <- Nomes_colunas
+
+#Criando matriz de correlação
+PLOT_MC <- corrplot(MC, 
+                    method = "color",
+                    type = c("full"),
+                    tl.cex = 0.8,
+                    tl.col = "black",
+                    tl.offset = 1,
+                    tl.srt = 45,
+                    cl.offset  = 0.5,
+                    addCoef.col = "black",
+                    number.cex = 0.5)
+```
+
+## 4)
+
+
+Ao examinar a Matriz de Correção como HeatMap se evidenciam fortes relações lineares positivas, conforme abaixo: 
+
+* População estimada em 1990 x Número total de crimes em 1990 registrados pela polícia (R =0,89) - **var x4**
+* Número de médicos não federais profissionalmente ativos em 1990 x Número total de crimes em 1990 registrados pela polícia (R =0,82) - **var x7**
+* Número de leitos nos hospitais em 1990 x Número total de crimes em 1990 registrados pela polícia (R =0,86) - **var x8**
+* Renda total da população da cidade em 1990, milhões de dólares x Número total de crimes em 1990 registrados pela polícia (R =0,84) - **var x15**
+
+Apesar das aparentes fortes relações apresentadas, não podemos inferir que alguma delas seja a causa da taxa de crimes nas cidades analisadas, pois correlação não significa causalidade, ou seja, não necessariamente por possuirem uma "aparente relação", que elas são de fato responsáveis pela taxa de crime nas cidades analisadas.
+
+Alguns possiveis motivos para a correlação não significar causalidade são amostras não representativas (pois certas coletas de dados são difíceis de serem realizadas), ou até erros de medição "measurement error", que podem ocorrer quando as variáveis a serem estudadas são de difícil medição. Também é possível que hajam variaveis omitidas que possivelmente teriam influencia causativa, no entanto não foram coletadas.
+
+## 5)
+
+Região geográfica conforme usada pelo
+Bureaux do Censo dos Estados Unidos, em
+que: 1 = NE, 2 = NC, 3 = S e 4 = W
+
+```{r}
+#Filtrando os dados por regiões (1 = NE, 2 = NC, 3 = S e 4 = W)
+dados_trab_R1 <- subset(dados_trab, dados_trab$x16 == 1, select = c(4:16))
+dados_trab_R2 <- subset(dados_trab, dados_trab$x16 == 2, select = c(4:16))
+dados_trab_R3 <- subset(dados_trab, dados_trab$x16 == 3, select = c(4:16))
+dados_trab_R4 <- subset(dados_trab, dados_trab$x16 == 4, select = c(4:16))
+
+#Criando correlações por região
+MC_R1 <- cor(dados_trab_R1)
+MC_R2 <- cor(dados_trab_R2)
+MC_R3 <- cor(dados_trab_R3)
+MC_R4 <- cor(dados_trab_R4)
+```
+
+### Matriz de correlação com Heatmap por região (1 = NE)
+```{r}
+
+
+colnames(MC_R1)  <- Nomes_colunas
+row.names(MC_R1) <- Nomes_colunas
+
+PLOT_MC_R1 <- corrplot(MC_R1,
+                       method = "color",
+                       type = c("full"),
+                       tl.cex = 0.6,
+                       tl.col = "black",
+                       tl.offset = 1,
+                       tl.srt = 45,
+                       cl.offset = 0.5,
+                       addCoef.col = "black",
+                       number.cex = 0.7)
+
+
+
+```
+
+### Matriz de correlação com Heatmap por região (2 = NC)
+```{r}
+
+colnames(MC_R2)  <- Nomes_colunas
+row.names(MC_R2) <- Nomes_colunas
+
+
+PLOT_MC_R2 <- corrplot(MC_R2,
+                       method = "color",
+                       type = c("full"),
+                       tl.cex = 0.6,
+                       tl.col = "black",
+                       tl.offset = 1,
+                       tl.srt = 45,
+                       cl.offset = 0.5,
+                       addCoef.col = "black",
+                       number.cex = 0.7)
+```
+
+### Matriz de correlação com Heatmap por região (3 = S)
+```{r}
+
+colnames(MC_R3)  <- Nomes_colunas
+row.names(MC_R3) <- Nomes_colunas
+
+PLOT_MC_R3 <- corrplot(MC_R3,
+                       method = "color",
+                       type = c("full"),
+                       tl.cex = 0.6,
+                       tl.col = "black",
+                       tl.offset = 1,
+                       tl.srt = 45,
+                       cl.offset = 0.5,
+                       addCoef.col = "black",
+                       number.cex = 0.7)
+```
+
+### Matriz de correlação com Heatmap por região (4 = W)
+```{r}
+
+colnames(MC_R4)  <- Nomes_colunas
+row.names(MC_R4) <- Nomes_colunas
+
+PLOT_MC_R4 <- corrplot(MC_R4,
+                       method = "color",
+                       type = c("full"),
+                       tl.cex = 0.6,
+                       tl.col = "black",
+                       tl.offset = 1,
+                       tl.srt = 45,
+                       cl.offset = 0.5,
+                       addCoef.col = "black",
+                       number.cex = 0.7)
+```
+
+### Comparando com os resultados de (3)
+```{r}
+
+PLOT_MC <- corrplot(MC, 
+                    method = "color",
+                    type = c("full"),
+                    tl.cex = 0.6,
+                    tl.col = "black",
+                    tl.offset = 1,
+                    tl.srt = 45,
+                    cl.offset  = 0.5,
+                    addCoef.col = "black",
+                    number.cex = 0.7)
+```
+
+
+Sim. Analisando variáveis x4,x7,x8 e x15 em relação a variável x9 (Número total de crimes em 1990 registrados pela polícia), fica evidente que a região 1 (NE - Northeast) é o que mais distoa em relação aos resultados obtidos em (3). Ao passo que as regiões 2,3 e 4 (NC,S e W) apresentam força de correlação positivos e mais fortes (proximos de 1), a região 1 (NE) apresenta relações lineares mais brandas (proximas de 0.5) o que indica que sua força de correlação é mais fraca se comparada a análise geral obtida em (3).
+
+Analisando o restante das variáveis (x3,x5,x6,x10,x11,x12,x13 e x14) em relação a x9 (total de crime em 1990), observa-se que são raros os casos há mudança no sentido da correlação. Quando ocorre, não ocorre com intensidade, ou seja, positivos ou negativos permanecem proximos de zero.
+
+Também se observa a maior similaridade entre as regiões 2,3 e 4(NC,S e W) com os resultados obtidos em (3), uma vez que possuem valores de R mais próximos.
+
+
+## 6)
+
+```{r}
+#instalando pacotes
+# install.packages("dplyr")
+library(dplyr)
+```
+
+### Ordenando as 50 cidades mais violentas 
+```{r}
+
+df <- dados_trab
+
+#Reorientar df$x9 do maior para o menor 
+org_df <- arrange(df, desc(df$x9)) 
+df_6 <- head(org_df,50)
+#apresentando as 50 cidades mais violentas
+df_6$x1
+```
+
+## 7)
+
+### Ordenando as 50 cidades menos violentas 
+```{r}
+#Por total de mortes por cidade
+df_7 <- tail(org_df,50)
+#apresentando as 50 cidades menos violentas
+df_7$x1
+```
+
+## 8)
+
+```{r}
+#install.packages
+# install.packages("ggplot2")
+library(ggplot2)
+```
+
+### Gráfico de barras: As 50 cidades mais violentas
+```{r}
+table(df_6$x16)
+
+ggplot(df_6, aes(x16,fill ="red")) + 
+  geom_bar() + 
+  labs(title = "50 cidades mais violentas",
+       x = "Regiões",
+       y = "n de cidades")
+```
+
+### Gráfico de barras: As 50 cidades menos violentas
+```{r}
+table(df_7$x16)
+
+ggplot(df_7, aes(x16)) + 
+  geom_bar() + 
+  labs(title = "50 cidades menos violentas",
+       x = "Regiões",
+       y = "n de cidades")
+
+```
+
+Como se pode observar nos gráficos acima, a região 3 (S) é a região que possui mais cidades entre as 50 mais violentas (19 cidades), 
+ao passo que a região que possui mais cidades entre as 50 cidades menos violentas é a região 1 (NE), com 25 cidades.
+
+## 9)
+
+```{r}
+#Instalando pacotes de correlação
+# install.packages("corrplot")
+library("corrplot")
+```
+
+### Matriz de correlação Geral - Questão 3
+```{r}
+PLOT_MC <- corrplot(MC, 
+                    method = "color",
+                    type = c("full"),
+                    tl.cex = 0.5,
+                    tl.col = "black",
+                    tl.offset = 1,
+                    tl.srt = 45,
+                    cl.offset  = 0.5,
+                    addCoef.col = "black",
+                    number.cex = 0.6)
+```
+
+```{r}
+#correlação
+MC_df6 <- cor(df_6[ , 4:16])
+MC_df7 <- cor(df_7[ , 4:16])
+```
+
+### Matriz de correlação das 50 cidades mais violentas
+```{r}
+PLOT_MC6 <- corrplot(MC_df6, 
+                     method = "color",
+                     type = c("full"),
+                     tl.cex = 0.8,
+                     tl.col = "black",
+                     tl.offset = 1,
+                     tl.srt = 45,
+                     cl.offset  = 0.5,
+                     addCoef.col = "black",
+                     number.cex = 0.8)
+```
+
+### Matriz de correlação das 50 cidades menos violentas
+```{r}
+
+PLOT_MC7 <- corrplot(MC_df7, 
+                     method = "color",
+                     type = c("full"),
+                     tl.cex = 0.8,
+                     tl.col = "black",
+                     tl.offset = 1,
+                     tl.srt = 45,
+                     cl.offset  = 0.5,
+                     addCoef.col = "black",
+                     number.cex = 0.8)
+```
+
+Sim. Fazendo uma comparação entre a matriz de correlação da questão 3 e a matriz de correlação 
+para as 50 cidade menos violantas, fica evidente a forte queda de correlação sobretudo nas variaveis x4,x7,x8 e x15 quando comparadas a x9 ("total de crimes"). Em algumas variáveis ocorreram mudança no sentido da correlação, mas ainda próximos de zero *(Ex:0,12 para -0,06)*
+
+Quando comparamos a matriz de correlação da questão 3 e a matriz de correlação 
+para as 50 cidade mais violantas, também observa-se mudança na força de correlação em algumas variáveis, no entanto mais brandas *(em torno de 0,1-0,2)*. Em algumas variáveis ocorreram mudança no sentido da correlação, mas ainda próximos de zero.
+
+## 10)
+
+Criando var tcpc - "total de crimes por 100mil habitantes"
+```{r}
+
+tcpc <- round(df$x9/df$x4*100000,2)
+df_10 <- data.frame(df,tcpc)
+```
+
+```{r}
+
+library(corrplot)
+
+MC10 <- cor(df_10[ , 4:18])
+PLOT_MC10 <- corrplot(MC10,
+                      method = "color",
+                      type = c("full"),
+                      tl.cex = 0.6,
+                      tl.col = "black",
+                      tl.offset = 1,
+                      tl.srt = 45,
+                      cl.offset  = 0.5,
+                      addCoef.col = "black",
+                      number.cex = 0.7)
+```
+
+### Comparação "total de crimes por 100 habitantes" com outras variáveis
+
+Analisando a correlação da var "total de crimes por 100 habitantes" entre as demais, se observam fracas e moderadas 
+forças de correlação conforme abaixo:
+
+```{r}
+R_tcpc <- round(MC10["tcpc", ],2)
+R_tc  <-  round(MC10["x9", ],2)
+```
+
+"Total de crimes por 100 habitantes" - Fracas e moderadas forças de correlação 
+```{r}
+R_tcpc
+```
+
+"Total de crimes" - coluna x9
+```{r}
+R_tc
+```
+
+### Comparação - matrizes de correlação ("total de crimes por 100 habitantes" x "total de crimes")
+```{r}
+comp <- abs(R_tcpc - R_tc)
+comp
+```
+
+Quando comparamos os coeficientes R das 2 variáveis ("total de crimes por 100 habitantes" x "total de crimes"), observa-se que para as variáveis x4,x7,x8 ocorre uma variação expressiva (em torno de 0,47 - 0,61), indicando que para essas 4 variáveis, há uma variação expressiva na força de correlação. Para as demais variáveis, há variação na força de correlação é pequena (em torno de 0-0,31).
+
+Observa-se também que o R entre a taxa de crime per capita x taxa de crime = 0,52, indicando que a correlação é positiva, mas moderada, conforme abaixo.
+```{r}
+R_comp <- round(MC10["tcpc",7],2)
+R_comp
+```
+### Comparação de distribuição ("total de crimes por 100 habitantes" x "total de crimes")
+```{r}
+
+
+hist(df_10$tcpc, main = "Histograma -Total de crimes por 100 habitantes", col = "blue")
+boxplot(df_10$tcpc, main = "Boxplot -Total de crimes por 100 habitantes", col = "blue")
+
+hist(df_10$x9, main = "Total de crimes- coluna x9", col = "green")
+boxplot(df_10$x9, main = "Total de crimes- coluna x9", col = "green")
+```
+
+Prontamente se observa que a variável "total de crimes por 100 habitantes" possui uma distribuição mais normalizada, ao passo que 
+a variável "Total de crimes" possui dados menos distribuidos. 
+
+## 11)
+
+
+### Gerando histogramas para cada variável
+```{r}
+# install.packages("ggplot2", repos = "http://cran.us.r-project.org")
+library(ggplot2)
+
+ggplot(data=df_10, aes(x= x3)) +  
+  geom_density() +
+  labs(title ="Gráfico de densidades - var x3")
+
+ggplot(data=df_10, aes(x= x4)) +  
+  geom_density() +
+  labs(title ="Gráfico de densidades - var x4")
+       
+ggplot(data=df_10, aes(x= x5)) +  
+  geom_density() +
+  labs(title ="Gráfico de densidades - var x5")
+
+ggplot(data=df_10, aes(x= x6)) +  
+  geom_density() +
+  labs(title ="Gráfico de densidades - var x6")
+       
+ggplot(data=df_10, aes(x= x7)) +  
+  geom_density() +
+  labs(title ="Gráfico de densidades - var x7")
+
+ggplot(data=df_10, aes(x= x8)) +  
+  geom_density() +
+  labs(title ="Gráfico de densidades - var x8")
+
+ggplot(data=df_10, aes(x= x9)) +  
+  geom_density() +
+  labs(title ="Gráfico de densidades - var x9")
+
+ggplot(data=df_10, aes(x= x10)) +  
+  geom_density() +
+  labs(title ="Gráfico de densidades - var x10")
+
+ggplot(data=df_10, aes(x= x11)) +  
+  geom_density() +
+  labs(title ="Gráfico de densidades - var x11")
+
+ggplot(data=df_10, aes(x= x12)) +  
+  geom_density() +
+  labs(title ="Gráfico de densidades - var x12")
+
+ggplot(data=df_10, aes(x= x13)) +  
+  geom_density() +
+  labs(title ="Gráfico de densidades - var x13")
+
+ggplot(data=df_10, aes(x= x14)) +  
+  geom_density() +
+  labs(title ="Gráfico de densidades - var x14")
+
+ggplot(data=df_10, aes(x= x15)) +  
+  geom_density() +
+  labs(title ="Gráfico de densidades - var x15")
+
+
+ggplot(data=df_10, aes(x= tcpc)) +  
+  geom_density() +
+  labs(title ="Gráfico de densidades - var Total de crimes por 100 habitantes")
+
+```
+
+De todas as variáveis análisadas as variáveis x5, x6, x14 são as que mais se aproximam da normalidade, 
+pois são mais simétricas em torno da média e possuem formato de sino.
+
+## 12)
+
+### Transformação
+
+### Verificação Inicial
+```{r}
+
+ggplot(data=df_10, aes(x= x14)) +  
+  geom_density() +
+  labs(title ="Gráfico de densidades - var x14")
+```
+
+### Aplicação do log de x
+```{r}
+#criando nova coluna log x14
+df_10$logx14 <- log(df_10$x14)
+
+#Aplicação do log x
+ggplot(data=df_10, aes(x= logx14)) +  
+  geom_density() +
+  labs(title ="Gráfico de densidades - log Renda per capita")
+```
+
+Sim. Vemos que após transformar x14 em log de x14, a nova distribuição se aproximou da normal 
+pois houve centralização da curva.(Simetria em torno da média)
+
+
+## 13)
+
+### Padronização
+```{r}
+#Eliminando -Inf
+df_10 <- df_10[df_10$logx14 != -Inf, ]
+
+#subtrair média e divide pelo desvio padrão
+df_10$logx14 <- scale(df_10$logx14)
+
+#Grafico de densidade - log Renda per capita
+ggplot(data=df_10, aes(x= logx14)) +  
+  geom_density() +
+  labs(title ="Gráfico de densidades - log Renda per capita")
+
+```
+
+### Cidades com renda per capita maior que 2σ
+```{r}
+df_10[df_10$logx14 > 2, c("x1", "x2", "x14","logx14")]
+```
+
+### Cidades com renda per capita menor que -2σ
+```{r}
+df_10[df_10$logx14 < -2, c("x1", "x2", "x14","logx14")]
+```
+
+
