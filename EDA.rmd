@@ -2,9 +2,6 @@
 title: "TRABALHO - ANÁLISE EXPLORATÓRIA DE DADOS"
 author: "Renan Moisés Bonfá"
 output:
-  html_document: default
-  word_document: default
-  pdf_document: default
 sub-title: MBA Executivo em Business Analytics e Big Data
 ---
  
@@ -13,6 +10,7 @@ sub-title: MBA Executivo em Business Analytics e Big Data
 ## 1)
 
 Subir arquivo dadosTrabalho.txt
+
 ```{r}
 setwd("~/R Projects/AED/Dataset")
 
